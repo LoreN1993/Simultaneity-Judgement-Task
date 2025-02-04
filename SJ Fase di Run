@@ -1,171 +1,175 @@
-# START_RUN_PHASE
+# ==============================
+#  START_RUN_PHASE: Esperimento di Simultaneity Judgment
+# ==============================
 
+# Importazione delle librerie necessarie
 import random
-from psychopy import core  # Import core to use Clock
-import csv
-import os
+from psychopy import core  # Per gestire il tempo (Clock(), sleep())
+import csv  # Per la scrittura dei risultati in file CSV
+import os  # Per la gestione dei file e delle cartelle
 
-# Definition of the function to save data
+
+# ==============================
+# 1. FUNZIONE PER SALVARE I DATI
+# ==============================
+
 def salva_dati(soa, key, rt, accuracy, isi, jitter, start_time, end_time, block):
-    # Path to save results with the participant's number
-    path_to_save = os.path.expanduser('~/Desktop/Lorenzo/Risultati SJ')  # Ensure that the path exists
-    os.makedirs(path_to_save, exist_ok=True)
+    """
+    Salva i dati del trial in un file CSV, creando il file se non esiste.
+    """
+    # Definizione del percorso di salvataggio
+    path_to_save = os.path.expanduser('~/Desktop/Lorenzo/Risultati SJ')
+    os.makedirs(path_to_save, exist_ok=True)  # Crea la cartella se non esiste
 
-    # Create the file name based on the participant's number
-    subject_nr = var.subject_nr  # Assume that subject_nr is defined by OpenSesame
+    # Nome del file basato sul numero del soggetto
+    subject_nr = var.subject_nr  # Definito in OpenSesame
     file_name = f"subject_{subject_nr}_sj.csv"
     file_path = os.path.join(path_to_save, file_name)
 
-    # Check if the file already exists. If it doesn't, create the header
+    # Creazione del file se non esiste già
     if not os.path.exists(file_path):
         with open(file_path, mode='w', newline='') as file:
             writer = csv.writer(file)
-            # Write the file header
             writer.writerow(['SOA', 'Response', 'RT (s)', 'Accuracy', 'ISI', 'Jittering', 'Start_time (s)', 'End_time (s)', 'Block'])
 
-    # Format the RT and timestamps correctly as numbers with three decimal places
+    # Formattazione dei dati prima di salvarli
     rt_str = f"{rt:.3f}" if isinstance(rt, (int, float)) else rt
     start_time_str = f"{start_time:.3f}"
     end_time_str = f"{end_time:.3f}"
 
-    # Save the data to the file
+    # Scrittura dei dati nel file CSV
     with open(file_path, mode='a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([soa, key, rt_str, accuracy, isi, jitter, start_time_str, end_time_str, block])
 
-# Definition of necessary variables
-isi_medio = 1200  # Mean ISI of 1200 ms
-jittering = random.randint(-300, 300)  # Jittering of ±300 ms
-interval_duration = 300  # Duration of the interval between the end of the fixation cross and the stimuli
-sound_duration = 33  # Duration of the sound in ms
 
-# Initialize the clock only once at the beginning of the experiment
+# ==============================
+# 2. INIZIALIZZAZIONE VARIABILI
+# ==============================
+
+# Parametri temporali
+isi_medio = 1200  # Interstimulus Interval medio (in ms)
+jittering = random.randint(-300, 300)  # Jittering ±300 ms per variabilità
+interval_duration = 300  # Intervallo tra croce di fissazione e stimoli (in ms)
+sound_duration = 33  # Durata del suono (in ms)
+
+# Creazione dell'orologio per il tempo di reazione (RT)
 if trial_counter == 0:
-    rt_clock = core.Clock()  # Initialize the clock only at the start of the experiment
+    rt_clock = core.Clock()  # L'orologio viene inizializzato solo all'inizio dell'esperimento
 
-# Increment the trial counter
+# Incremento del contatore dei trial
 trial_counter += 1
 
-# Check if the number of trials performed doesn't exceed the defined total
+# Verifica che il numero di trial non superi il massimo previsto
 if trial_counter > total_trials:
-    raise ValueError("Number of trials exceeds the defined total")
+    raise ValueError("Il numero di trial supera il totale definito")
 
-# Variable ISI for the time before the fixation cross
-isi_casuale = isi_medio + jittering  # Variable ISI for the time before the cross
+# Calcolo dell'ISI variabile
+isi_casuale = isi_medio + jittering  
 
-# Variable blank interval between the response and the fixation cross
+# Pausa prima della presentazione della croce di fissazione
 clock.sleep(isi_casuale)
 
-# Show the centered fixation cross, size 0.60 pixels
+
+# ==============================
+# 3. PRESENTAZIONE DELLA CROCE DI FISSAZIONE
+# ==============================
+
 fixation_canvas = canvas(exp)
-fixation_canvas.line(sx=0, sy=-30, ex=0, ey=30, penwidth=0.60)  # Vertical line
-fixation_canvas.line(sx=-30, sy=0, ex=30, ey=0, penwidth=0.60)  # Horizontal line
+fixation_canvas.line(sx=0, sy=-30, ex=0, ey=30, penwidth=0.60)  # Linea verticale
+fixation_canvas.line(sx=-30, sy=0, ex=30, ey=0, penwidth=0.60)  # Linea orizzontale
 fixation_canvas.show()
 
-clock.sleep(700)  # Fixed duration of 700 ms for the fixation cross
+clock.sleep(700)  # La croce di fissazione dura 700 ms
 
-# Show the blank canvas after the fixation cross
+# Pausa tra fissazione e stimolo
 blank_canvas.show()
-clock.sleep(interval_duration)  # The blank canvas lasts 300 ms
+clock.sleep(interval_duration)  # 300 ms di intervallo
 
-# Get the start timestamp (start_time) after the blank screen
-start_time = rt_clock.getTime()
 
-# Stimuli handling
-stim_x, stim_y = 0, 0  # Define the initial position of the stimuli
-soa_clock = core.Clock()  # Clock to measure the times of SOA and stimuli
+# ==============================
+# 4. REGISTRAZIONE DEL TEMPO DI INIZIO
+# ==============================
 
-# Stimuli handling based on SOA
+start_time = rt_clock.getTime()  # Registra il tempo in cui inizia il trial
+
+
+# ==============================
+# 5. PRESENTAZIONE DEGLI STIMOLI BASATA SU SOA
+# ==============================
+
+soa_clock = core.Clock()  # Orologio per misurare il SOA
+
 if soa < 0:
-    print(f"Negative SOA: {soa}")
-    soa_clock.reset()  # Reset the clock to measure the SOA duration
+    # Caso SOA negativo: il suono viene presentato per primo
+    my_sampler.play()
+    clock.sleep(abs(soa))  # Aspetta la durata del SOA negativo
 
-    my_sampler.play()  # Play the sound
-    clock.sleep(abs(soa))  # Wait for the negative SOA
-    soa_duration = soa_clock.getTime() * 1000  # Actual SOA duration in ms
-    print(f"Actual negative SOA duration: {soa_duration:.3f} ms")  # Print the SOA duration
-
-    visual_canvas.show()  # Show the visual stimulus
-    flip_clock = core.Clock()  # Clock to measure the win.flip() duration
-    win.flip()  # Synchronize the stimulus presentation with the monitor's refresh
-    flip_duration = flip_clock.getTime() * 1000  # Measure the time taken by the flip
-    print(f"Actual win.flip() duration: {flip_duration:.3f} ms")
-
-    stim_duration_clock = core.Clock()  # Clock to measure the visual stimulus duration
-    core.wait(2 * (1 / 60.0))  # Wait for 2 refresh cycle (~33.33 ms)
-     #blank_canvas.show()  # Remove the visual stimulus - could also remove this
-    stim_duration = stim_duration_clock.getTime() * 1000  # Actual visual stimulus duration in ms
-    print(f"Actual visual stimulus duration: {stim_duration:.3f} ms")
+    # Mostra lo stimolo visivo
+    visual_canvas.show()
+    flip_clock = core.Clock()  # Orologio per misurare win.flip()
+    win.flip()  # Sincronizza la presentazione con il refresh dello schermo
+    flip_duration = flip_clock.getTime() * 1000  # Tempo di flip in ms
 
 elif soa > 0:
-    print(f"Positive SOA: {soa}")
-    visual_canvas.show()  # Show the visual stimulus
-    flip_clock = core.Clock()  # Clock to measure the win.flip() duration
-    win.flip()  # Synchronize the stimulus presentation with the monitor's refresh
-    flip_duration = flip_clock.getTime() * 1000  # Measure the time taken by the flip
-    print(f"Actual win.flip() duration: {flip_duration:.3f} ms")
+    # Caso SOA positivo: lo stimolo visivo viene presentato per primo
+    visual_canvas.show()
+    flip_clock = core.Clock()
+    win.flip()
+    flip_duration = flip_clock.getTime() * 1000
 
-    stim_duration_clock = core.Clock()  # Clock to measure the visual stimulus duration
-    core.wait(2 * (1 / 60.0))  # Wait for 2 refresh cycle (~33.33 ms)
-    #blank_canvas.show()  # Remove the visual stimulus
-    stim_duration = stim_duration_clock.getTime() * 1000  # Actual visual stimulus duration in ms
-    print(f"Actual visual stimulus duration: {stim_duration:.3f} ms")
+    clock.sleep(soa)  # Attendi il SOA positivo prima di suonare il beep
+    my_sampler.play()
 
-    soa_clock.reset()
-    clock.sleep(soa)  # Wait for the positive SOA
-    soa_duration = soa_clock.getTime() * 1000  # Actual SOA duration in ms
-    print(f"Actual positive SOA duration: {soa_duration:.3f} ms")
+else:
+    # Caso SOA = 0: stimoli simultanei
+    my_sampler.play()
+    visual_canvas.show()
+    flip_clock = core.Clock()
+    win.flip()
+    flip_duration = flip_clock.getTime() * 1000
 
-    my_sampler.play()  # Play the sound
 
-else:  # SOA = 0
-    print("Zero SOA (simultaneous stimuli)")
-    soa_clock.reset()
+# ==============================
+# 6. RACCOLTA DELLA RISPOSTA
+# ==============================
 
-    my_sampler.play()  # Play the sound
-    visual_canvas.show()  # Show the visual stimulus simultaneously
-    flip_clock = core.Clock()  # Clock to measure the win.flip() duration
-    win.flip()  # Synchronize the stimulus presentation with the monitor's refresh
-    flip_duration = flip_clock.getTime() * 1000  # Measure the time taken by the flip
-    print(f"Actual win.flip() duration: {flip_duration:.3f} ms")
+key, rt = my_keyboard.get_key(timeout=2000)  # Attesa della risposta (timeout di 2000 ms)
 
-    stim_duration_clock = core.Clock()  # Clock to measure the visual stimulus duration
-    core.wait(2 * (1 / 60.0))  # Wait for 2 refresh cycle (~33.33 ms)
-    #blank_canvas.show()  # Remove the visual stimulus
-
-    soa_duration = soa_clock.getTime() * 1000  # Actual SOA duration in ms
-    stim_duration = stim_duration_clock.getTime() * 1000  # Actual visual stimulus duration in ms
-    print(f"Actual simultaneous stimuli duration (SOA=0): {soa_duration:.3f} ms")
-    print(f"Actual visual stimulus duration: {stim_duration:.3f} ms")
-
-# The 2000 ms timeout for the participant's response starts
-key, rt = my_keyboard.get_key(timeout=2000)
-
-# Get the end timestamp (end_time) at the moment of response
+# Registrazione del tempo di fine trial
 end_time = rt_clock.getTime()
 
-# Calculation of reaction time
-if key is None:
-    rt = 'timeout'  # If there is no response within the timeout
-    accuracy = 0  # Set accuracy to 0 in case of timeout
-else:
-    rt = end_time - start_time  # Calculation of reaction time
+# ==============================
+# 7. CALCOLO DEL TEMPO DI REAZIONE (RT)
+# ==============================
 
-    # Calculate the response accuracy
-    if (-150 <= soa <= 150 and key == 's'):  # If the SOA is between -150 and 150, the correct response is 's'. When we reach half sample, we invert the response modes.
+if key is None:
+    rt = 'timeout'  # Se il partecipante non risponde in tempo
+    accuracy = 0
+else:
+    rt = end_time - start_time  # RT = tempo di fine - tempo di inizio
+
+    # Determina se la risposta è corretta
+    if (-150 <= soa <= 150 and key == 's'):
         accuracy = 1
-    elif ((soa < -150 or soa > 150) and key == 'j'):  # If the SOA is outside the simultaneity window, the correct response is 'j'
+    elif ((soa < -150 or soa > 150) and key == 'j'):
         accuracy = 1
     else:
-        accuracy = 0  # Otherwise, the response is incorrect
+        accuracy = 0  # Risposta errata
 
-# Save the results to the CSV file, including Start_time and End_time
+
+# ==============================
+# 8. SALVATAGGIO DATI
+# ==============================
+
 salva_dati(soa, key, rt, accuracy, isi_casuale, jittering, start_time, end_time, block_counter)
 
-# Clear the canvas at the end of the trial
-blank_canvas.show()
 
-# Add an explicit pause before starting the pause sketchpad or the next block
-clock.sleep(500)  # Pause of 500 ms (or any desired duration to avoid immediate transition)
+# ==============================
+# 9. PULIZIA E PAUSA FINALE
+# ==============================
+
+blank_canvas.show()
+clock.sleep(500)  # Pausa di 500 ms prima del prossimo trial
 
 # END_RUN_PHASE
