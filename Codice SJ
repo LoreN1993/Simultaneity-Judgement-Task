@@ -1,0 +1,50 @@
+# Fase di preparazione
+
+# Inizializzazione del contatore dei trial e della gestione dei blocchi dei trial
+if 'trial_counter' not in globals():
+    trial_counter = 0
+
+# Configurazioni dei blocchi: numero di trial per ciascun blocco
+num_trial_practice = 13
+num_trial_task = 65
+total_trials = num_trial_practice + 4 * num_trial_task  # Numero totale di trial definiti
+
+# Usa la variabile global `current_loop` per ottenere il nome del ciclo corrente
+loop_name = var.current_block  # Assicurati che `current_block` sia definita in ogni loop
+print(f"Current loop name: {loop_name}")  # Debug: verifica nome del loop
+
+# Calcola il numero del blocco in base al ciclo corrente
+if loop_name == 'Practice_loop':
+    block_counter = 1
+elif loop_name == 'Task_1':
+    block_counter = 2
+elif loop_name == 'Task_2':
+    block_counter = 3
+elif loop_name == 'Task_3':
+    block_counter = 4
+elif loop_name == 'Task_4':
+    block_counter = 5
+else:
+    block_counter = -1
+    raise ValueError(f"Nome del ciclo non riconosciuto: {loop_name}")
+
+print(f"Block counter set to: {block_counter}")  # Debug: verifica block_counter
+
+# Caricamento degli stimoli dal pool
+visual_stimulus = pool['circle_opaque_gold (1).png']  # Carica il file immagine
+auditory_stimulus = pool['beep_33ms.wav']     # Carica il file audio
+
+# Creazione degli oggetti Canvas per visualizzare gli stimoli
+visual_canvas = Canvas()      # Non passare l'oggetto exp
+blank_canvas = Canvas()       # Non passare l'oggetto exp
+
+# Preparazione dello stimolo visivo sul canvas (non viene mostrato ancora)
+visual_canvas.image(visual_stimulus, scale=0.25)
+
+# Creazione dell'oggetto Sampler per gestire il suono
+my_sampler = Sampler(auditory_stimulus)  # Crea l'oggetto Sampler con il percorso del file di suono
+
+# Creazione dell'oggetto Keyboard per registrare la risposta
+my_keyboard = Keyboard(keylist=['s', 'j'], timeout=2000)  # Imposta il timeout a 2000 ms
+
+# END_PREPARE_PHASE
