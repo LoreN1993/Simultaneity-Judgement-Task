@@ -101,33 +101,66 @@ start_time = rt_clock.getTime()  # Registra il tempo in cui inizia il trial
 soa_clock = core.Clock()  # Orologio per misurare il SOA
 
 if soa < 0:
-    # Caso SOA negativo: il suono viene presentato per primo
-    my_sampler.play()
-    clock.sleep(abs(soa))  # Aspetta la durata del SOA negativo
+    print(f"Negative SOA: {soa}")
+    soa_clock.reset()  # Reset the clock to measure the SOA duration
 
-    # Mostra lo stimolo visivo
-    visual_canvas.show()
-    flip_clock = core.Clock()  # Orologio per misurare win.flip()
-    win.flip()  # Sincronizza la presentazione con il refresh dello schermo
-    flip_duration = flip_clock.getTime() * 1000  # Tempo di flip in ms
+    my_sampler.play()  # Play the sound
+    clock.sleep(abs(soa))  # Wait for the negative SOA
+    soa_duration = soa_clock.getTime() * 1000  # Actual SOA duration in ms
+    print(f"Actual negative SOA duration: {soa_duration:.3f} ms")  # Print the SOA duration
+
+    visual_canvas.show()  # Show the visual stimulus
+    flip_clock = core.Clock()  # Clock to measure the win.flip() duration
+    win.flip()  # Synchronize the stimulus presentation with the monitor's refresh
+    flip_duration = flip_clock.getTime() * 1000  # Measure the time taken by the flip
+    print(f"Actual win.flip() duration: {flip_duration:.3f} ms")
+
+    stim_duration_clock = core.Clock()  # Clock to measure the visual stimulus duration
+    core.wait(2 * (1 / 60.0))  # Wait for 2 refresh cycle (~33.33 ms)
+     #blank_canvas.show()  # Remove the visual stimulus - could also remove this
+    stim_duration = stim_duration_clock.getTime() * 1000  # Actual visual stimulus duration in ms
+    print(f"Actual visual stimulus duration: {stim_duration:.3f} ms")
 
 elif soa > 0:
-    # Caso SOA positivo: lo stimolo visivo viene presentato per primo
-    visual_canvas.show()
-    flip_clock = core.Clock()
-    win.flip()
-    flip_duration = flip_clock.getTime() * 1000
+    print(f"Positive SOA: {soa}")
+    visual_canvas.show()  # Show the visual stimulus
+    flip_clock = core.Clock()  # Clock to measure the win.flip() duration
+    win.flip()  # Synchronize the stimulus presentation with the monitor's refresh
+    flip_duration = flip_clock.getTime() * 1000  # Measure the time taken by the flip
+    print(f"Actual win.flip() duration: {flip_duration:.3f} ms")
 
-    clock.sleep(soa)  # Attendi il SOA positivo prima di suonare il beep
-    my_sampler.play()
+    stim_duration_clock = core.Clock()  # Clock to measure the visual stimulus duration
+    core.wait(2 * (1 / 60.0))  # Wait for 2 refresh cycle (~33.33 ms)
+    #blank_canvas.show()  # Remove the visual stimulus
+    stim_duration = stim_duration_clock.getTime() * 1000  # Actual visual stimulus duration in ms
+    print(f"Actual visual stimulus duration: {stim_duration:.3f} ms")
 
-else:
-    # Caso SOA = 0: stimoli simultanei
-    my_sampler.play()
-    visual_canvas.show()
-    flip_clock = core.Clock()
-    win.flip()
-    flip_duration = flip_clock.getTime() * 1000
+    soa_clock.reset()
+    clock.sleep(soa)  # Wait for the positive SOA
+    soa_duration = soa_clock.getTime() * 1000  # Actual SOA duration in ms
+    print(f"Actual positive SOA duration: {soa_duration:.3f} ms")
+
+    my_sampler.play()  # Play the sound
+
+else:  # SOA = 0
+    print("Zero SOA (simultaneous stimuli)")
+    soa_clock.reset()
+
+    my_sampler.play()  # Play the sound
+    visual_canvas.show()  # Show the visual stimulus simultaneously
+    flip_clock = core.Clock()  # Clock to measure the win.flip() duration
+    win.flip()  # Synchronize the stimulus presentation with the monitor's refresh
+    flip_duration = flip_clock.getTime() * 1000  # Measure the time taken by the flip
+    print(f"Actual win.flip() duration: {flip_duration:.3f} ms")
+
+    stim_duration_clock = core.Clock()  # Clock to measure the visual stimulus duration
+    core.wait(2 * (1 / 60.0))  # Wait for 2 refresh cycle (~33.33 ms)
+    #blank_canvas.show()  # Remove the visual stimulus
+
+    soa_duration = soa_clock.getTime() * 1000  # Actual SOA duration in ms
+    stim_duration = stim_duration_clock.getTime() * 1000  # Actual visual stimulus duration in ms
+    print(f"Actual simultaneous stimuli duration (SOA=0): {soa_duration:.3f} ms")
+    print(f"Actual visual stimulus duration: {stim_duration:.3f} ms")
 
 
 # ==============================
