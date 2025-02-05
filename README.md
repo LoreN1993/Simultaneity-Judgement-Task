@@ -31,3 +31,5 @@ if soa < 0:
     print(f"Actual visual stimulus duration: {stim_duration:.3f} ms")
 
  soa_clock.reset() serve a resettare il clock per misurare i SOA, mentre soa_duration = soa_clock.getTime() * 1000  è posto esattamente tra la presentazione del primo stimolo e del secondo e serve a calcolare lo spazio effettivo tra la presentazione dei due stimoli. Viene moltiplicato per mille per restituire un valore accurato in ms che rispetti il formato che utiliziamo anche per i tempi di reazione.
+
+ Per assicurare una presentazione effettiva dello stimolo, impostato precedentemnte per durare 33ms, ho dovuto ricorrere ad un "trucchetto" 
